@@ -2,48 +2,37 @@ package waypoint.model;
 
 import java.util.Objects;
 
-/** ENTITY. Identity = id. Invariant: a spot cannot be assigned while occupied. */
 public final class Spot {
-    private final SpotId id;
-    private VehicleId occupant;   // the ONLY mutable field
+    private final String id;
+    private final int level;
+    private final int distanceFromGate;
+    private final SpotType type;
+    private Vehicle occupant;
 
-    public Spot(SpotId id) {
-        this.id = Objects.requireNonNull(id, "SpotId must not be null");
+    public Spot(String id, int level, int distanceFromGate, SpotType type) {
+        this.id = Objects.requireNonNull(id, "id must not be null");
+        this.level = level;
+        this.distanceFromGate = distanceFromGate;
+        this.type = Objects.requireNonNull(type, "type must not be null");
     }
 
-    public SpotId id() {
-        return id;
-    }
+    public String id() { return id; }
+    public int level() { return level; }
+    public int distanceFromGate() { return distanceFromGate; }
+    public SpotType type() { return type; }
+    public boolean isOccupied() { return occupant != null; }
+    public boolean isFree() { return occupant == null; }
+    public Vehicle occupant() { return occupant; }
 
-    public boolean tryAssign(VehicleId v) {
-        Objects.requireNonNull(v, "VehicleId must not be null");
+    public void occupy(Vehicle vehicle) {
+        Objects.requireNonNull(vehicle, "vehicle must not be null");
         if (this.occupant != null) {
-            return false;
+            throw new IllegalStateException("Spot is already occupied: " + id);
         }
-        this.occupant = v;
-        return true;
+        this.occupant = vehicle;
     }
 
-    public void release(VehicleId v) {
-        Objects.requireNonNull(v, "VehicleId must not be null");
-        if (v.equals(this.occupant)) {
-            this.occupant = null;
-        }
-    }
-
-    public boolean isFree() {
-        return this.occupant == null;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Spot other)) return false;
-        return this.id.equals(other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
+    public void vacate() {
+        this.occupant = null;
     }
 }
